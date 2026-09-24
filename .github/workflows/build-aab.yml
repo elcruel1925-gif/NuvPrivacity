@@ -1,0 +1,43 @@
+name: Build NuvPrivacity AAB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar proyecto
+        uses: actions/checkout@v4
+
+      - name: Preparar proyecto
+        run: |
+          mkdir build-src
+          unzip -q NuvPrivacity-GitHub-Actions-AAB-preparado.zip -d build-src
+          echo "Proyecto preparado"
+          find build-src -name settings.gradle.kts
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.13'
+
+      - name: Compilar AAB
+        run: |
+          PROJECT_DIR=$(dirname "$(find build-src -name settings.gradle.kts -print -quit)")
+          echo "Proyecto: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          gradle :app:bundleRelease --stacktrace
+
+      - name: Guardar AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: NuvPrivacity-release-AAB
+          path: build-src/**/app/build/outputs/bundle/release/app-release.aab
