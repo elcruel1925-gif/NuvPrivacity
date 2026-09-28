@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090b18">
+<link rel="manifest" href="manifest.json">
+<title>NuvPrivacity</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070914;color:#f7f7ff;font-family:Inter,system-ui,sans-serif}
+.app{max-width:480px;margin:auto;min-height:100vh;background:radial-gradient(circle at 80% 0,#25205b 0,transparent 38%),#080a16}
+.screen{display:none;min-height:100vh;padding:28px 18px 100px}.screen.active{display:block}
+.logo{font-size:30px;font-weight:900;background:linear-gradient(90deg,#9c6cff,#55b9ff);-webkit-background-clip:text;color:transparent}
+.tag{color:#9ea4c2;font-size:13px}.card{background:rgba(25,28,52,.82);border:1px solid #343860;border-radius:22px;padding:18px;margin:12px 0;box-shadow:0 10px 35px #0004}
+h1{font-size:28px;margin:8px 0}h2{margin:0 0 6px}.muted{color:#9ea4c2}.btn{width:100%;border:0;border-radius:16px;padding:15px;font-weight:800;font-size:16px;color:white;background:linear-gradient(100deg,#794cff,#278fff);margin-top:10px}.btn.secondary{background:#20243d}.input{width:100%;padding:15px;border-radius:15px;border:1px solid #414668;background:#101328;color:white;font-size:16px}
+.choice{cursor:pointer;border:1px solid #383d63;border-radius:18px;padding:16px;margin:10px 0}.choice.selected{border-color:#8d63ff;background:#221b43}
+.avatar{width:70px;height:70px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#7e4cff,#28a4ff);font-size:30px;margin:20px auto}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.bubble{padding:12px 15px;border-radius:17px;background:#242844;margin:8px 0;max-width:82%}.mine{margin-left:auto;background:#6544c9}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100%);display:flex;justify-content:space-around;background:#101326ee;backdrop-filter:blur(16px);border-top:1px solid #303451;padding:10px 4px;z-index:5}.nav button{background:none;border:0;color:#aab0cb;font-size:11px}.nav b{display:block;font-size:20px}.nav .on{color:#a56cff}
+.row{display:flex;align-items:center;gap:14px}.icon{font-size:24px}.grow{flex:1}
+.toast{position:fixed;left:50%;bottom:85px;transform:translateX(-50%);background:#252a47;padding:12px 18px;border-radius:14px;display:none}
+</style>
+
+<style id="np-media-style">
+.media-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.media-tools button,.timer-select{border:1px solid #33407a;background:#151b3b;color:#fff;border-radius:12px;padding:10px 12px}
+.audio-msg,.timed-photo{margin-top:10px;padding:12px;border-radius:14px;background:#111936;border:1px solid #293565}
+.audio-progress{height:6px;background:#30385f;border-radius:6px;overflow:hidden;margin-top:8px}
+.audio-progress i{display:block;height:100%;width:0;background:#7c6cff}
+.media-badge{font-size:12px;opacity:.8;margin-left:6px}
+</style>
+
+<style id="np-final-settings-style">
+.np-panel{background:#0e1430;border:1px solid #29345f;border-radius:18px;padding:16px;margin:12px 0;color:#fff}
+.np-panel h3{margin:0 0 10px}.np-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #202a4d}.np-row:last-child{border-bottom:0}.np-row small{display:block;opacity:.7;margin-top:3px}.np-select,.np-input{background:#151c3d;color:#fff;border:1px solid #364476;border-radius:10px;padding:9px}.np-switch{width:46px;height:25px}.np-btn{background:#4e46d8;color:#fff;border:0;border-radius:12px;padding:10px 14px}.np-danger{background:#5d2030}.np-chip{display:inline-block;padding:5px 8px;border-radius:9px;background:#202a52;font-size:12px}
+</style>
+
+<style id="np-lock-call-style">
+#npLockOverlay{position:fixed;inset:0;background:#070914f7;backdrop-filter:blur(18px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}
+#npLockOverlay .lock-card{width:min(420px,100%);background:#12172f;border:1px solid #39426d;border-radius:24px;padding:24px;text-align:center}
+.call-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.call-actions button{border:0;border-radius:16px;padding:14px 18px;background:#202743;color:#fff;font-size:16px}
+.call-actions .accept{background:linear-gradient(100deg,#7147ff,#268fff)}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+</style>
+
+<style id="np-webrtc-billing-style">
+.np-call-overlay{position:fixed;inset:0;z-index:90;background:#070914f7;display:none;align-items:center;justify-content:center;padding:20px}
+.np-call-card{width:min(460px,100%);background:#11172f;border:1px solid #38436e;border-radius:24px;padding:20px;text-align:center}
+.np-video{width:100%;max-height:48vh;background:#05060b;border-radius:18px;object-fit:cover}
+.np-billing-card{background:#11172f;border:1px solid #38436e;border-radius:18px;padding:16px;margin:12px 0}
+.np-plan{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #303a64;border-radius:14px;padding:14px;margin:8px 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="welcome" class="screen active">
+  <div style="padding-top:9vh;text-align:center">
+    <div class="logo">NuvPrivacity</div><div class="tag">TU CONVERSACIÓN, TU REGLA</div>
+    <div class="avatar">✦</div>
+    <h1>Bienvenido</h1><p class="muted">Tu identidad es privada y única.</p>
+    <div class="card">
+      <div class="muted">¿Cómo quieres aparecer?</div>
+      <div id="autoChoice" class="choice selected" onclick="selectMode('auto')">✨ <b>Generar nombre automáticamente</b><br><small class="muted">Te asignaremos una identidad aleatoria.</small><br><strong id="randomName"></strong></div>
+      <div id="customChoice" class="choice" onclick="selectMode('custom')">✏️ <b>Elegir mi propio nombre</b><br><small class="muted">Usa el nombre que quieras mostrar.</small><div id="customBox" style="display:none;margin-top:10px"><input id="customName" class="input" maxlength="40" placeholder="Escribe tu nombre"></div></div>
+      <button class="btn" onclick="continueIdentity()">Continuar</button>
+    </div>
+    <p class="muted" style="font-size:12px">No necesitas nombre real, correo ni teléfono para elegir tu identidad dentro de la app.</p>
+  </div>
+</section>
+
+<section id="chats" class="screen">
+ <div class="top"><div><div class="logo" style="font-size:24px">NuvPrivacity</div><h1>Chats</h1></div><div class="row" style="gap:8px"><button class="btn secondary" style="width:auto" onclick="toast('Nuevo chat próximamente')">＋</button><button class="btn secondary" style="width:auto" onclick="toggleChatMenu()">⋮</button></div></div>
+ <div id="chatMenu" class="card" style="display:none;position:absolute;right:18px;top:86px;width:240px;z-index:10">
+  <div class="row" style="padding:10px 0;cursor:pointer" onclick="startNewChat()">💬 <b>Iniciar el Chat</b></div>
+  <div class="row" style="padding:10px 0;cursor:pointer" onclick="openGroupCreator()">👥 <b>Crear grupo</b></div>
+  <div class="row" style="padding:10px 0;cursor:pointer" onclick="show('settings');toggleChatMenu(true)">⚙️ <b>Ajustes</b></div>
+  <div class="row" style="padding:10px 0;cursor:pointer" onclick="selectAllChats()">☑️ <b>Seleccionar todo</b></div>
+  <div class="row" style="padding:10px 0;cursor:pointer" onclick="deleteAllChats()">🗑️ <b>Eliminar todos</b></div>
+ </div>
+ <input class="input" placeholder="Buscar conversaciones…">
+ <div class="card" onclick="openChat('AlexR')"><div class="row"><div class="avatar" style="width:48px;height:48px;margin:0;font-size:20px">A</div><div class="grow"><b>AlexR</b><div class="muted">Nos vemos luego</div></div><small>12:28</small></div></div>
+ <div class="card" onclick="openChat('NubeSegura')"><div class="row"><div class="avatar" style="width:48px;height:48px;margin:0;font-size:20px">N</div><div class="grow"><b>NubeSegura</b><div class="muted">Mensaje temporal</div></div><small>Ayer</small></div></div>
+</section>
+
+<section id="chat" class="screen">
+ <div class="top"><button class="btn secondary" style="width:auto" onclick="show('chats')">‹</button><div><b id="chatName">AlexR</b><div class="muted">Privado</div></div><div class="row" style="gap:6px"><button class="btn secondary" style="width:auto" onclick="npOpenTemporaryChat()">⏱️</button><button class="btn secondary" style="width:auto" onclick="toast('Llamada próximamente')">☎</button></div></div>
+ <div id="messages"><div class="bubble">Hola 👋<br>¿Todo bien?</div><div class="bubble mine">Sí, todo bien 👍</div><div class="bubble">Nos vemos luego.</div></div>
+ <div id="np-temp-banner" class="card" style="display:none;margin:8px">⏱️ <b>Chat temporal</b> <span id="np-temp-label" class="muted"></span></div>
+ <div class="card" style="position:fixed;bottom:62px;left:50%;transform:translateX(-50%);width:min(450px,94%);padding:8px"><div class="row"><input id="msg" class="input" placeholder="Escribe un mensaje…"><button class="btn" style="width:auto" onclick="sendMsg()">➤</button></div></div>
+</section>
+
+<section id="group" class="screen">
+ <div class="top"><button class="btn secondary" style="width:auto" onclick="show('chats')">‹</button><div><div class="logo" style="font-size:20px">NuvPrivacity</div><h1>Crear grupo</h1></div></div>
+ <div class="card"><input id="groupName" class="input" maxlength="80" placeholder="Nombre del grupo">
+ <p class="muted">Añade miembros por su identidad NuvPrivacity.</p>
+ <input id="groupMembers" class="input" placeholder="Nombres separados por coma">
+ <button class="btn" onclick="createGroupDemo()">Crear grupo</button></div>
+ <div class="card"><h3>Funciones del grupo</h3><div class="row"><span>🎙️</span><div class="grow"><b>Audios</b><div class="muted">Mensajes normales o temporales con duración.</div></div></div><div class="row"><span>📞</span><div class="grow"><b>Llamadas grupales</b><div class="muted">Voz con los miembros del grupo.</div></div></div><div class="row"><span>🎥</span><div class="grow"><b>Videollamadas grupales</b><div class="muted">Video con los miembros del grupo.</div></div></div><div class="row"><span>📷</span><div class="grow"><b>Fotos y videos</b><div class="muted">Contenido normal o temporal.</div></div></div><div class="row"><span>📁</span><div class="grow"><b>Archivos</b><div class="muted">Documentos y otros archivos.</div></div></div><div class="row"><span>🔒</span><div class="grow"><b>Cifrado de extremo a extremo</b><div class="muted">Contenido protegido antes de enviarse al servidor.</div></div></div><div class="row"><span>⏱️</span><div class="grow"><b>Mensajes temporales</b><div class="muted">Configura cuánto tiempo se mantienen.</div></div></div></div>
+ </section>
+
+<section id="calls" class="screen"><div class="top"><h1>Llamadas</h1></div><div class="card"><h3>📞 Nueva llamada</h3><p class="muted">Selecciona una conversación o grupo.</p><div class="row"><button class="btn" style="width:auto" onclick="startVoiceCall()">☎ Voz</button><button class="btn" style="width:auto" onclick="startVideoCall()">🎥 Video</button></div></div><div id="callStatus" class="card">☎️ <b>Sin llamadas recientes</b><p class="muted">Tus llamadas aparecerán aquí.</p></div></section>
+<section id="contacts" class="screen"><div class="top"><h1>Contactos</h1></div><div class="card">👥 <b>Tus contactos</b><p class="muted">Añade personas para iniciar conversaciones privadas.</p><button class="btn" onclick="toast('Invitación próximamente')">Invitar amigos</button></div></section>
+<section id="files" class="screen"><div class="top"><h1>Archivos</h1></div><div class="card">📁 <b>Tus archivos</b><p class="muted">Fotos, videos, documentos y audios.</p></div></section>
+<section id="trash" class="screen"><div class="top"><h1>Papelera</h1></div><div class="card">🗑️ <b>Contenido eliminado</b><p class="muted">Los elementos eliminados pueden conservarse durante el período configurado.</p><button class="btn secondary" onclick="recoverTrash()">Recuperar contenido</button></div></section>
+
+
+<section id="premium" class="screen">
+ <div class="top"><button class="btn secondary" style="width:auto" onclick="show('settings')">‹</button><h1>Premium</h1><span>👑</span></div>
+ <div class="card"><h2>Recuperación Premium</h2>
+  <p class="muted">Protege y recupera tus fotos, audios y mensajes desde tu copia segura.</p>
+  <div id="npPremiumStatus" class="np-chip">Comprobando suscripción…</div>
+ </div>
+ <div class="card">
+  <h3>Elige tu plan</h3>
+  <div class="np-plan"><div><b>Mensual</b><div class="muted">US$3.50 / mes</div></div><button class="np-btn" onclick="npBuyPremium('monthly')">Suscribirme</button></div>
+  <div class="np-plan"><div><b>Anual</b><div class="muted">US$20 / año</div></div><button class="np-btn" onclick="npBuyPremium('annual')">Suscribirme</button></div>
+  <button class="btn secondary" onclick="npRestorePremium()">🔄 Restaurar compra</button>
+ </div>
+ <div class="card">
+  <h3>Incluye</h3>
+  <div class="row"><span>📷</span><div class="grow"><b>Fotos</b><div class="muted">Copia y restauración segura.</div></div></div>
+  <div class="row"><span>🎵</span><div class="grow"><b>Audios</b><div class="muted">Copia y restauración segura.</div></div></div>
+  <div class="row"><span>💬</span><div class="grow"><b>Mensajes</b><div class="muted">Recuperación desde la copia protegida.</div></div></div>
+ </div>
+ <p class="muted" style="font-size:11px">La suscripción se procesa mediante Google Play. Puedes administrarla desde Google Play.</p>
+</section>
+
+<section id="premiumTrash" class="screen">
+ <div class="top"><h1>Papelera Premium</h1><span>👑</span></div>
+ <div id="trashItems" class="card"><p class="muted">No hay elementos eliminados.</p></div>
+</section>
+
+<section id="settings" class="screen">
+ <div class="top"><div><div class="logo" style="font-size:24px">NuvPrivacity</div><h1>Configuración</h1></div></div>
+ <div class="card"><div class="row"><div class="icon">👤</div><div class="grow"><b id="profileName">Usuario</b><div class="muted">Tu identidad NuvPrivacity</div></div></div></div><div class="card"><h3>🔐 Privacidad y seguridad</h3><div class="row" onclick="npSetPin()" style="cursor:pointer"><span class="icon">🔑</span><div class="grow"><b>Clave de acceso</b><div class="muted">Bloquea NuvPrivacity al entrar.</div></div>›</div><div class="row" onclick="npBio()" style="cursor:pointer"><span class="icon">👆</span><div class="grow"><b>Desbloqueo biométrico</b><div class="muted">Usa huella o biometría del dispositivo.</div></div>›</div><div class="row"><span class="icon">🛡️</span><div class="grow"><b>Cifrado de extremo a extremo</b><div class="muted">Mensajes y contenido diseñados para cifrarse en el dispositivo.</div></div><span class="np-chip">E2EE</span></div></div>
+<div class="card"><h3>💬 Chats</h3><div class="row" onclick="show('chat')" style="cursor:pointer"><span class="icon">⏱️</span><div class="grow"><b>Mensajes temporales</b><div class="muted">Se configura dentro de cada conversación.</div></div>›</div><div class="row"><span class="icon">✓✓</span><div class="grow"><b>Confirmaciones de lectura</b><div class="muted">Controla cuándo se muestran.</div></div><input type="checkbox" checked></div></div>
+<div class="card"><h3>🔔 Aplicación</h3><div class="row"><span class="icon">🔔</span><div class="grow"><b>Notificaciones</b></div><input type="checkbox" checked></div><div class="row"><span class="icon">📶</span><div class="grow"><b>Disminuir uso de datos</b></div><input type="checkbox"></div><div class="row"><span class="icon">🔤</span><div class="grow"><b>Tamaño del texto</b></div><select class="input" style="width:auto"><option>Mediano</option><option>Pequeño</option><option>Grande</option></select></div><div class="row"><span class="icon">🌎</span><div class="grow"><b>Idioma</b></div><select class="input" style="width:auto"><option>Español</option><option>English</option></select></div></div>
+<div class="card"><h3>📦 Datos y cuenta</h3><div class="row"><span class="icon">🔄</span><div class="grow"><b>Transferir datos al nuevo dispositivo</b></div>›</div><div class="row"><span class="icon">👥</span><div class="grow"><b>Invitar amigos</b></div>›</div><div class="row"><span class="icon">🗑️</span><div class="grow"><b>Papelera y recuperación Premium</b></div><button class="btn" style="width:auto" onclick="show('premium')">Ver</button></div></div>
+<div class="card"><h3>❓ Ayuda</h3><div class="row"><span class="icon">❓</span><div class="grow"><b>Preguntas frecuentes</b></div>›</div><div class="row"><span class="icon">⭐</span><div class="grow"><b>Valorar NuvPrivacity</b></div>›</div><div class="row"><span class="icon">ℹ️</span><div class="grow"><b>Acerca de</b><div class="muted">NuvPrivacity v1.0.0 · Privacidad por diseño</div></div></div></div>
+ <div class="card">
+  <div class="row" onclick="show('premium')"><span class="icon">👑</span><div class="grow"><b>NuvPrivacity Premium</b><div class="muted">US$20/año · US$3.50/mes</div></div>›</div>
+  <hr style="border-color:#303451;border-width:1px 0 0;margin:16px 0">
+  <div class="row" onclick="toast('Transferencia segura próximamente')"><span class="icon">🔄</span><div class="grow"><b>Transferir datos</b><div class="muted">Migra tus chats y archivos</div></div>›</div>
+  <hr style="border-color:#303451;border-width:1px 0 0;margin:16px 0">
+  <div class="row" onclick="toast('Privacidad configurada')"><span class="icon">🛡️</span><div class="grow"><b>Privacidad</b><div class="muted">Controla quién puede contactarte</div></div>›</div>
+  <hr style="border-color:#303451;border-width:1px 0 0;margin:16px 0">
+  <div class="row"><span class="icon">🔔</span><div class="grow"><b>Notificaciones</b><div class="muted">Mensajes y llamadas</div></div><input type="checkbox" checked></div>
+  <hr style="border-color:#303451;border-width:1px 0 0;margin:16px 0">
+  <div class="row" onclick="toast('Almacenamiento próximamente')"><span class="icon">💾</span><div class="grow"><b>Almacenamiento de datos</b><div class="muted">Gestiona tu espacio</div></div>›</div>
+  <hr style="border-color:#303451;border-width:1px 0 0;margin:16px 0">
+  <div class="row" onclick="toast('Idioma: Español')"><span class="icon">🌐</span><div class="grow"><b>Idioma</b><div class="muted">Español</div></div>›</div>
+ </div>
+</section>
+
+<nav class="nav" id="nav" style="display:none">
+<button onclick="show('chats')" data-s="chats"><b>💬</b>Chats</button>
+<button onclick="show('calls')" data-s="calls"><b>☎</b>Llamadas</button>
+<button onclick="show('contacts')" data-s="contacts"><b>👥</b>Contactos</button>
+<button onclick="show('files')" data-s="files"><b>📁</b>Archivos</button>
+<button onclick="show('settings')" data-s="settings"><b>⚙</b>Config.</button>
+</nav>
+<div id="toast" class="toast"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://emnfojwtghqubmyotyxk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_sBZOMh8CfxlJXMdK8BL-rg_hQUND3wk";
+let supabaseClient = null;
+try { if (window.supabase?.createClient) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { console.error("Supabase init:", e); }
+
+async function ensureAuth(){
+  try {
+    if (!supabaseClient) { toast("No se cargó el servicio de conexión. Revisa Internet e inténtalo de nuevo."); return null; }
+    const {data: sessionData} = await supabaseClient.auth.getSession();
+    if (sessionData && sessionData.session) return sessionData.session.user;
+    const {data, error} = await supabaseClient.auth.signInAnonymously();
+    if (error) throw error;
+    return data.user;
+  } catch(e){
+    console.error(e);
+    toast("No se pudo conectar con NuvPrivacity");
+    return null;
+  }
+}
+
+async function saveProfile(displayName){
+  // La identidad local debe permitir entrar a la app aunque Supabase/CDN
+  // esté temporalmente sin conexión. La sincronización con el servidor es
+  // un paso secundario y no debe bloquear el botón Continuar.
+  localStorage.setItem("np_display_name", displayName);
+  try {
+    const user=await ensureAuth();
+    if(!user) return true;
+    const {data,error}=await supabaseClient.rpc("create_npv_profile", {p_display_name: displayName});
+    if(error){ console.error("create_npv_profile:", error); return true; }
+    localStorage.setItem("np_user_id", user.id);
+  } catch(e) {
+    console.error("saveProfile sync:", e);
+  }
+  return true;
+}
+
+const namesA=['Lobo','Nube','Zorro','Halcón','Tigre','Puma','Cuervo','Jaguar','Rayo','Cometa'];
+const namesB=['Azul','Fuerte','Libre','Sereno','Brillante','Noble','Veloz','Calmo','Solar','Oculto'];
+function randomName(){return namesA[Math.floor(Math.random()*namesA.length)]+namesB[Math.floor(Math.random()*namesB.length)]+(1000+Math.floor(Math.random()*9000))}
+let mode='auto', generated=randomName(); document.getElementById('randomName').textContent=generated;
+function selectMode(m){mode=m;document.getElementById('autoChoice').classList.toggle('selected',m==='auto');document.getElementById('customChoice').classList.toggle('selected',m==='custom');document.getElementById('customBox').style.display=m==='custom'?'block':'none';}
+async function continueIdentity(){
+  const button = document.querySelector('#welcome .btn');
+  if (window.npContinueBusy) return;
+  window.npContinueBusy = true;
+  if (button) { button.disabled = true; button.textContent = 'Conectando…'; }
+  try {
+    const name = mode === 'custom' ? document.getElementById('customName').value.trim() : generated;
+    if (mode === 'custom' && !name) { toast('Escribe un nombre para continuar'); return; }
+    if (!name) { toast('Elige un nombre para continuar'); return; }
+    // Entrar a la aplicación no depende de la red. Guardamos primero
+    // la identidad local y dejamos la sincronización con Supabase en segundo plano.
+    localStorage.setItem('np_display_name', name);
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('nav').style.display = 'flex';
+    show('chats');
+    toast('Identidad conectada: ' + name);
+    saveProfile(name).catch(e => console.error('sync profile:', e));
+  } catch (e) {
+    console.error('Error al continuar:', e);
+    toast('No se pudo completar el registro. Revisa la conexión e inténtalo otra vez.');
+  } finally {
+    window.npContinueBusy = false;
+    if (button) { button.disabled = false; button.textContent = 'Continuar'; }
+  }
+}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===id))}
+function openChat(n){document.getElementById('chatName').textContent=n;show('chat')}
+function sendMsg(){if(window.npActiveConversation&&window.npActiveRecipient){npSendSecureMessage();return}let i=document.getElementById('msg'),v=i.value.trim();if(!v)return;let d=document.createElement('div');d.className='bubble mine';d.textContent=v;d.title='Toca dos veces para eliminar';d.ondblclick=()=>{addDeletedItem('message',v);d.remove();toast('Mensaje enviado a la papelera')};document.getElementById('messages').appendChild(d);i.value='';}
+function addDeletedItem(type,name){
+  deletedItems.unshift({id:Date.now(),type,name,deletedAt:Date.now()});
+  deletedItems=deletedItems.slice(0,50);
+  localStorage.setItem('np_deleted_items',JSON.stringify(deletedItems));
+  renderTrash();
+}
+function recoverTrash(){
+  if(!premium){show('premium');toast('La recuperación de contenido es exclusiva de Premium');return;}
+  show('premiumTrash');renderTrash();
+}
+function renderTrash(){
+  const box=document.getElementById('trashItems'); if(!box)return;
+  const now=Date.now(), max=30*24*60*60*1000;
+  deletedItems=deletedItems.filter(x=>now-x.deletedAt<max);
+  localStorage.setItem('np_deleted_items',JSON.stringify(deletedItems));
+  if(!deletedItems.length){box.innerHTML='<p class="muted">No hay elementos eliminados.</p>';return;}
+  box.innerHTML=deletedItems.map(x=>`<div class="row" style="margin:12px 0"><span class="icon">${x.type==='message'?'💬':'📎'}</span><div class="grow"><b>${x.name}</b><div class="muted">Eliminado recientemente</div></div><button class="btn" style="width:auto" onclick="restoreItem(${x.id})">Restaurar</button></div>`).join('');
+}
+function restoreItem(id){
+  if(!premium){toast('Necesitas Premium');return;}
+  deletedItems=deletedItems.filter(x=>x.id!==id);
+  localStorage.setItem('np_deleted_items',JSON.stringify(deletedItems));
+  renderTrash();toast('Contenido restaurado');
+}
+
+let saved=localStorage.getItem('np_display_name');if(saved){document.getElementById('profileName').textContent=saved;document.getElementById('nav').style.display='flex';show('chats');ensureAuth().then(()=>saveProfile(saved));}
+</script>
+
+<script id="np-media-features">
+let npMediaRecorder=null,npAudioChunks=[],npAudioStart=0,npAudioTimer=null,npAudioLimit=30;
+let npPhotoTimer=null;
+function npChatTools(){
+  const host=document.querySelector('#chat')||document.querySelector('.chat')||document.querySelector('[data-screen="chat"]');
+  if(!host || document.getElementById('np-media-tools')) return;
+  const box=document.createElement('div'); box.id='np-media-tools'; box.className='media-tools';
+  box.innerHTML=`<button onclick="npStartAudio()">🎙️ Audio</button>
+    <button onclick="npPhoto()">📷 Foto</button>
+    <select class="timer-select" id="npPhotoSeconds" aria-label="Tiempo de foto">
+      <option value="5">Foto 5 s</option><option value="10">Foto 10 s</option>
+      <option value="15">Foto 15 s</option><option value="30">Foto 30 s</option>
+    </select>
+    <span id="npMediaStatus" class="media-badge"></span>`;
+  host.appendChild(box);
+}
+async function npStartAudio(){
+  if(npMediaRecorder && npMediaRecorder.state==="recording"){ npMediaRecorder.stop(); return; }
+  if(!navigator.mediaDevices?.getUserMedia){ alert("Este dispositivo no permite grabar audio desde el navegador."); return; }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    npAudioChunks=[]; npAudioStart=Date.now();
+    npMediaRecorder=new MediaRecorder(stream);
+    npMediaRecorder.ondataavailable=e=>{if(e.data.size)npAudioChunks.push(e.data)};
+    npMediaRecorder.onstop=()=>{
+      clearInterval(npAudioTimer); stream.getTracks().forEach(t=>t.stop());
+      const seconds=Math.max(1,Math.round((Date.now()-npAudioStart)/1000));
+      const blob=new Blob(npAudioChunks,{type:'audio/webm'});
+      const url=URL.createObjectURL(blob);
+      const host=document.getElementById('np-media-tools');
+      const el=document.createElement('div'); el.className='audio-msg';
+      el.innerHTML=`🎙️ Audio <span class="media-badge">${seconds}s</span><br><audio controls src="${url}"></audio>`;
+      host?.after(el);
+      document.getElementById('npMediaStatus').textContent="";
+    };
+    npMediaRecorder.start();
+    document.getElementById('npMediaStatus').textContent="Grabando 0s… toca Audio para terminar";
+    npAudioTimer=setInterval(()=>{
+      const s=Math.round((Date.now()-npAudioStart)/1000);
+      document.getElementById('npMediaStatus').textContent=`Grabando ${s}s… toca Audio para terminar`;
+      if(s>=npAudioLimit) npMediaRecorder.stop();
+    },500);
+  }catch(e){ alert("Necesitamos permiso para usar el micrófono."); }
+}
+function npPhoto(){
+  const seconds=parseInt(document.getElementById('npPhotoSeconds')?.value||5,10);
+  const input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.capture='environment';
+  input.onchange=()=>{
+    const file=input.files?.[0]; if(!file)return;
+    const url=URL.createObjectURL(file);
+    const host=document.getElementById('np-media-tools'); if(!host)return;
+    const el=document.createElement('div'); el.className='timed-photo';
+    el.innerHTML=`📷 Foto temporal <span class="media-badge">${seconds}s</span><br><img src="${url}" style="max-width:100%;border-radius:12px;margin-top:8px">`;
+    host.after(el);
+    setTimeout(()=>{el.remove();URL.revokeObjectURL(url)},seconds*1000);
+  };
+  input.click();
+}
+const npOldGo=window.go;
+window.go=function(screen,...args){
+  const r=npOldGo?.(screen,...args);
+  setTimeout(()=>{if(screen==='chat'||screen==='chats')npChatTools()},50);
+  return r;
+};
+setTimeout(npChatTools,500);
+</script>
+<script id="np-group-features">
+function toggleChatMenu(forceClose=false){const m=document.getElementById('chatMenu');if(!m)return;m.style.display=forceClose?'none':(m.style.display==='none'?'block':'none')}
+function startNewChat(){toggleChatMenu(true);toast('Selecciona un contacto para iniciar el chat')}
+function openGroupCreator(){toggleChatMenu(true);show('group')}
+function selectAllChats(){toggleChatMenu(true);toast('Chats seleccionados')}
+function deleteAllChats(){toggleChatMenu(true);if(confirm('¿Eliminar todos los chats de este dispositivo?'))toast('Los chats fueron enviados a la papelera')}
+async function createGroupDemo(){const name=document.getElementById('groupName')?.value.trim();if(!name){toast('Escribe un nombre para el grupo');return}const members=(document.getElementById('groupMembers')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);try{const u=await ensureAuth();if(!u){toast('No se pudo autenticar');return}const {data:g,error:e}=await supabaseClient.from('np_groups').insert({name,owner_id:u.id}).select().single();if(e)throw e;await supabaseClient.from('np_group_members').insert({group_id:g.id,user_id:u.id,role:'owner'});localStorage.setItem('np_last_group',JSON.stringify({id:g.id,name,members}));toast('Grupo creado: '+name);show('chats')}catch(e){console.error(e);toast('No se pudo crear el grupo todavía')}}
+</script>
+
+<div id="np-build-status" class="np-panel" style="display:none">
+  <h3>Estado de NuvPrivacity</h3>
+  <div class="np-row"><div>💬 Chats y mensajes</div><span class="np-chip">Preparado</span></div>
+  <div class="np-row"><div>👥 Grupos</div><span class="np-chip">Preparado</span></div>
+  <div class="np-row"><div>🎙️ Audio / 📷 multimedia</div><span class="np-chip">Preparado</span></div>
+  <div class="np-row"><div>📞 Voz / 🎥 video</div><span class="np-chip">Integración pendiente</span></div>
+  <div class="np-row"><div>🔒 E2EE real</div><span class="np-chip">Integración pendiente</span></div>
+  <div class="np-row"><div>💳 Google Play Billing</div><span class="np-chip">Integración pendiente</span></div>
+</div>
+
+<script id="np-final-runtime">
+async function npUnlock(){
+  const hash=localStorage.getItem("np_lock_pin_hash");
+  if(!hash){document.getElementById("npLockOverlay").style.display="none";return}
+  const pin=prompt("Introduce tu clave de NuvPrivacity:");
+  if(pin===null)return;
+  const entered=await npHashPin(pin);
+  if(entered===hash){document.getElementById("npLockOverlay").style.display="none";sessionStorage.setItem("np_unlocked","1");}
+  else alert("Clave incorrecta.");
+}
+function npApplyLockOnStart(){
+  if(localStorage.getItem("np_lock_enabled")==="1" && sessionStorage.getItem("np_unlocked")!=="1"){
+    document.getElementById("npLockOverlay").style.display="flex";
+  }
+}
+function npCallDemo(type){
+  const names={"voice":"Llamada de voz","video":"Videollamada","group-voice":"Llamada grupal de voz","group-video":"Videollamada grupal"};
+  toast((names[type]||"Llamada")+" preparada. La conexión WebRTC real se integrará en la versión nativa.");
+}
+setTimeout(npApplyLockOnStart,700);
+</script>
+
+<div id="npLockOverlay">
+ <div class="lock-card">
+  <div class="logo">NuvPrivacity</div>
+  <h2>🔐 Aplicación bloqueada</h2>
+  <p class="muted">Introduce tu clave para continuar.</p>
+  <button class="btn" onclick="npUnlock()">Desbloquear</button>
+ </div>
+</div>
+
+<script id="np-e2ee-realtime">
+/* NuvPrivacity E2EE v1: P-256 ECDH + AES-GCM. Private key stays on this device. */
+const NP_DB="NuvPrivacityKeys", NP_STORE="keys";
+function npOpenKeyDB(){return new Promise((res,rej)=>{const r=indexedDB.open(NP_DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(NP_STORE);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function npKeyPut(k,v){const db=await npOpenKeyDB();return new Promise((res,rej)=>{const tx=db.transaction(NP_STORE,"readwrite");tx.objectStore(NP_STORE).put(v,k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+async function npKeyGet(k){const db=await npOpenKeyDB();return new Promise((res,rej)=>{const tx=db.transaction(NP_STORE);const r=tx.objectStore(NP_STORE).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function npEnsureE2EEKeys(){
+  const user=await ensureAuth(); if(!user)return null;
+  let kp=await npKeyGet("identity:"+user.id);
+  if(!kp){
+    const pair=await crypto.subtle.generateKey({name:"ECDH",namedCurve:"P-256"},true,["deriveKey"]);
+    const pub=await crypto.subtle.exportKey("jwk",pair.publicKey);
+    const priv=await crypto.subtle.exportKey("jwk",pair.privateKey);
+    kp={publicJwk:pub,privateJwk:priv};
+    await npKeyPut("identity:"+user.id,kp);
+  }
+  const {data,error}=await supabaseClient.from("np_identity_keys").upsert({user_id:user.id,public_jwk:kp.publicJwk,key_version:1,updated_at:new Date().toISOString()});
+  if(error)console.error("E2EE key publish",error);
+  return {user,kp};
+}
+async function npImportPublic(jwk){return crypto.subtle.importKey("jwk",jwk,{name:"ECDH",namedCurve:"P-256"},true,[])}
+async function npImportPrivate(jwk){return crypto.subtle.importKey("jwk",jwk,{name:"ECDH",namedCurve:"P-256"},true,["deriveKey"])}
+async function npEncryptForUser(recipientId, plaintext){
+  const me=await npEnsureE2EEKeys(); if(!me)throw Error("auth");
+  const {data,error}=await supabaseClient.from("np_identity_keys").select("public_jwk").eq("user_id",recipientId).maybeSingle();
+  if(error||!data)throw Error("No se encontró la clave pública del destinatario");
+  const recipient=await npImportPublic(data.public_jwk);
+  const privateKey=await npImportPrivate(me.kp.privateJwk);
+  const aes=await crypto.subtle.deriveKey({name:"ECDH",public:recipient},privateKey,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const bytes=new TextEncoder().encode(plaintext);
+  const cipher=await crypto.subtle.encrypt({name:"AES-GCM",iv},aes,bytes);
+  return {v:1,alg:"P-256/AES-GCM",sender_public_jwk:me.kp.publicJwk,iv:Array.from(iv),ciphertext:btoa(String.fromCharCode(...new Uint8Array(cipher)))};
+}
+async function npDecryptFromSender(payload){
+  const me=await npEnsureE2EEKeys(); if(!me)throw Error("auth");
+  const sender=await npImportPublic(payload.sender_public_jwk), privateKey=await npImportPrivate(me.kp.privateJwk);
+  const aes=await crypto.subtle.deriveKey({name:"ECDH",public:sender},privateKey,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+  const raw=Uint8Array.from(atob(payload.ciphertext),c=>c.charCodeAt(0));
+  const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:new Uint8Array(payload.iv)},aes,raw);
+  return new TextDecoder().decode(plain);
+}
+async function npStartSecureChat(){
+  const username=prompt("Escribe el nombre de usuario de la persona:");
+  if(!username)return;
+  const me=await ensureAuth(); if(!me)return;
+  const {data:peer}=await supabaseClient.from("np_profiles").select("id,display_name,username").or(`username.eq.${username},display_name.eq.${username}`).limit(1).maybeSingle();
+  if(!peer||peer.id===me.id){toast("Usuario no encontrado");return}
+  let {data:conv}=await supabaseClient.from("np_conversations").insert({}).select().single();
+  if(!conv){toast("No se pudo crear el chat");return}
+  const members=await supabaseClient.from("np_conversation_members").insert([{conversation_id:conv.id,user_id:me.id},{conversation_id:conv.id,user_id:peer.id}]);
+  if(members.error){console.error(members.error);toast("No se pudo añadir al contacto");return}
+  await npEnsureE2EEKeys();
+  openChat(peer.display_name||peer.username);
+  window.npActiveConversation=conv.id; window.npActiveRecipient=peer.id;
+  npSubscribeChat(conv.id);
+  await npRefreshTemporaryBanner();
+  toast("Chat privado creado");
+}
+let npChatChannel=null;
+function npSubscribeChat(conversationId){
+  if(npChatChannel) supabaseClient.removeChannel(npChatChannel);
+  npChatChannel=supabaseClient.channel("np-chat-"+conversationId)
+   .on("postgres_changes",{event:"INSERT",schema:"public",table:"np_messages",filter:"conversation_id=eq."+conversationId},async payload=>{
+      const msg=payload.new;
+      if(msg.sender_id===(localStorage.getItem("np_user_id")||""))return;
+      try{await supabaseClient.rpc("np_mark_message_expiry",{p_message_id:msg.id,p_seen_at:new Date().toISOString()}); const data=JSON.parse(msg.ciphertext);const text=await npDecryptFromSender(data);const d=document.createElement("div");d.className="bubble";d.textContent=text;document.getElementById("messages")?.appendChild(d)}
+      catch(e){console.error(e)}
+   }).subscribe();
+}
+async function npOpenTemporaryChat(){
+  if(!window.npActiveConversation){toast("Primero inicia un chat privado");return}
+  const current=await npGetTemporaryChat();
+  const choice=prompt("Chat temporal\n0 = Desactivado\n30 = 30 segundos\n60 = 1 minuto\n300 = 5 minutos\n3600 = 1 hora\n86400 = 24 horas\n604800 = 7 días\n2592000 = 30 días\n\nEscribe la duración en segundos:", current?.temporary_mode ? String(current.temporary_seconds) : "0");
+  if(choice===null)return;
+  const seconds=parseInt(choice,10)||0;
+  if(seconds!==0 && ![30,60,300,3600,86400,604800,2592000].includes(seconds)){toast("Duración no válida");return}
+  let startOnRead=false;
+  if(seconds>0){startOnRead=confirm("¿Quieres que el contador empiece cuando el destinatario lea el mensaje?\nAceptar = al leer / Cancelar = al enviar")}
+  try{
+    const {error}=await supabaseClient.rpc("np_set_conversation_temporary_mode",{p_conversation_id:window.npActiveConversation,p_enabled:seconds>0,p_seconds:seconds||null,p_start_on_read:startOnRead});
+    if(error)throw error;
+    await npRefreshTemporaryBanner();
+    toast(seconds?"Chat temporal activado":"Chat temporal desactivado");
+  }catch(e){console.error(e);toast("No se pudo cambiar el chat temporal")}
+}
+async function npGetTemporaryChat(){
+  if(!window.npActiveConversation)return null;
+  const {data,error}=await supabaseClient.from("np_conversations").select("temporary_mode,temporary_seconds,temporary_start_on_read").eq("id",window.npActiveConversation).maybeSingle();
+  if(error)throw error; return data;
+}
+async function npRefreshTemporaryBanner(){
+  const b=document.getElementById("np-temp-banner"),l=document.getElementById("np-temp-label"); if(!b)return;
+  const c=await npGetTemporaryChat();
+  if(c?.temporary_mode){b.style.display="block";l.textContent=`${npTempLabel(c.temporary_seconds)} · ${c.temporary_start_on_read?"empieza al leer":"empieza al enviar"}`;} else b.style.display="none";
+}
+function npTempLabel(s){return ({30:"30 s",60:"1 min",300:"5 min",3600:"1 h",86400:"24 h",604800:"7 días",2592000:"30 días"})[s]||`${s}s`}
+
+async function npSendSecureMessage(){
+  const i=document.getElementById("msg"),v=i?.value.trim();if(!v)return;
+  if(!window.npActiveConversation||!window.npActiveRecipient){toast("Primero inicia un chat privado");return}
+  try{
+    const user=await ensureAuth(); const encrypted=await npEncryptForUser(window.npActiveRecipient,v);
+    const {data:expiry}=await supabaseClient.rpc("np_prepare_message_expiry",{p_conversation_id:window.npActiveConversation});
+    const {error}=await supabaseClient.from("np_messages").insert({conversation_id:window.npActiveConversation,sender_id:user.id,ciphertext:JSON.stringify(encrypted),message_type:"text",expires_at:expiry||null});
+    if(error)throw error;
+    const d=document.createElement("div");d.className="bubble mine";d.textContent=v;document.getElementById("messages")?.appendChild(d);i.value="";
+  }catch(e){console.error(e);toast("No se pudo enviar el mensaje cifrado")}
+}
+async function npInitSecurity(){try{await npEnsureE2EEKeys();}catch(e){console.error(e)}}
+npInitSecurity();
+</script>
+
+<script id="np-webrtc-real">
+let npPC=null,npCallChannel=null,npLocalStream=null,npCallKind="voice";
+async function npStartRealCall(kind="voice",targetUserId=null,groupId=null){
+  npCallKind=kind;
+  if(!navigator.mediaDevices?.getUserMedia){toast("Este dispositivo no permite llamadas desde el navegador.");return}
+  try{
+    npLocalStream=await navigator.mediaDevices.getUserMedia({audio:true,video:kind.includes("video")});
+    npShowCallUI(true);
+    if(!targetUserId && window.npActiveRecipient) targetUserId=window.npActiveRecipient;
+    if(!targetUserId && !groupId){toast("Selecciona un contacto o grupo primero");return}
+    const room=groupId?`group:${groupId}`:`user:${targetUserId}`;
+    await npJoinCallRoom(room,true);
+  }catch(e){console.error(e);toast("No se pudo acceder al micrófono/cámara");}
+}
+async function npJoinCallRoom(room,isCaller){
+  if(npCallChannel) supabaseClient.removeChannel(npCallChannel);
+  npPC=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  npLocalStream?.getTracks().forEach(t=>npPC.addTrack(t,npLocalStream));
+  npPC.ontrack=e=>{const v=document.getElementById("npRemoteVideo");if(v&&e.streams[0])v.srcObject=e.streams[0]};
+  npPC.onicecandidate=e=>{if(e.candidate)npCallChannel?.send({type:"broadcast",event:"ice",payload:e.candidate})};
+  npCallChannel=supabaseClient.channel("np-call-"+room,{config:{private:false}});
+  npCallChannel.on("broadcast",{event:"offer"},async({payload})=>{
+    if(isCaller)return; await npPC.setRemoteDescription(payload);const a=await npPC.createAnswer();await npPC.setLocalDescription(a);npCallChannel.send({type:"broadcast",event:"answer",payload:a});
+  }).on("broadcast",{event:"answer"},async({payload})=>{
+    if(!isCaller)return; await npPC.setRemoteDescription(payload);
+  }).on("broadcast",{event:"ice"},async({payload})=>{
+    try{await npPC.addIceCandidate(payload)}catch(e){}
+  }).subscribe(async status=>{
+    if(status==="SUBSCRIBED"&&isCaller){
+      const offer=await npPC.createOffer();await npPC.setLocalDescription(offer);
+      npCallChannel.send({type:"broadcast",event:"offer",payload:offer});
+    }
+  });
+}
+function npShowCallUI(show){
+  const o=document.getElementById("npCallOverlay");if(o)o.style.display=show?"flex":"none";
+}
+function npEndRealCall(){
+  npLocalStream?.getTracks().forEach(t=>t.stop());npLocalStream=null;
+  if(npCallChannel){supabaseClient.removeChannel(npCallChannel);npCallChannel=null}
+  npPC?.close();npPC=null;npShowCallUI(false);
+}
+function npToggleMic(){npLocalStream?.getAudioTracks().forEach(t=>t.enabled=!t.enabled)}
+function npToggleCam(){npLocalStream?.getVideoTracks().forEach(t=>t.enabled=!t.enabled)}
+</script>
+
+<div id="npCallOverlay" class="np-call-overlay">
+ <div class="np-call-card">
+  <h2>📞 NuvPrivacity</h2>
+  <p class="muted">Llamada segura</p>
+  <video id="npRemoteVideo" class="np-video" autoplay playsinline></video>
+  <div class="call-actions">
+   <button onclick="npToggleMic()">🎙️ Micrófono</button>
+   <button onclick="npToggleCam()">📷 Cámara</button>
+   <button class="accept" onclick="npEndRealCall()">❌ Finalizar</button>
+  </div>
+ </div>
+</div>
+
+<script id="np-native-billing">
+window.npPremium=false;
+window.npBillingStatus=function(raw){try{const d=JSON.parse(raw); if(!d.ready)console.log("Billing:",d.message||"no disponible")}catch(e){}};
+window.npBillingPlans=function(raw){try{const d=JSON.parse(raw); window.npBillingAvailable=(d.plans||[]).length>0;}catch(e){}};
+window.npBillingEntitlement=function(raw){
+  try{
+    const d=JSON.parse(raw); window.npPremium=!!d.premium;
+    const el=document.getElementById("npPremiumStatus");
+    if(el) el.textContent=window.npPremium?"👑 Premium activo":"Premium no activo";
+    localStorage.setItem("np_premium_active",window.npPremium?"1":"0");
+  }catch(e){}
+};
+window.npBillingError=function(raw){try{const d=JSON.parse(raw);toast(d.message||"No se pudo procesar la compra");}catch(e){toast("No se pudo procesar la compra")}};
+function npBuyPremium(plan){
+  if(window.NuvBilling){window.NuvBilling.buy(plan);}
+  else toast("La facturación de Google Play no está disponible en esta versión.");
+}
+function npRestorePremium(){
+  if(window.NuvBilling){window.NuvBilling.restore();toast("Comprobando tu compra…");}
+  else toast("La facturación de Google Play no está disponible.");
+}
+function npRequirePremium(action){
+  if(window.npPremium){action();return true}
+  toast("Esta función requiere NuvPrivacity Premium.");
+  show("premium");return false
+}
+</script>
+</body></html>
